@@ -1,0 +1,1549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MMAE Treatment Failure Risk Calculator (Beta)</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f6f7;
+            color: #1a1a1a;
+            font-size: 14px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .header {
+            background: #1a365d;
+            color: white;
+            padding: 20px 28px;
+            border-bottom: 3px solid #2c5282;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 2px;
+            letter-spacing: -0.3px;
+        }
+
+        .header p {
+            font-size: 13px;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .warning-banner {
+            background: #fffbeb;
+            border-bottom: 1px solid #f59e0b;
+            padding: 10px 20px;
+            font-size: 12px;
+            color: #92400e;
+        }
+
+        .warning-banner strong {
+            color: #78350f;
+        }
+
+        .container {
+            max-width: 920px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+        }
+
+        .calc-body {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            min-height: 500px;
+        }
+
+        .inputs-section {
+            padding: 20px 24px;
+            border-right: 1px solid #e5e7eb;
+        }
+
+        .results-section {
+            padding: 20px 24px;
+            background: #f9fafb;
+        }
+
+        .section-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #1a365d;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #1a365d;
+        }
+
+        /* Collapsible Accordion Sections */
+        .accordion-section {
+            margin-bottom: 6px;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            overflow: visible;
+        }
+
+        .accordion-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: #f9fafb;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.15s;
+        }
+
+        .accordion-header:hover {
+            background: #f3f4f6;
+        }
+
+        .accordion-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #374151;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .accordion-icon {
+            font-size: 10px;
+            color: #6b7280;
+            transition: transform 0.2s;
+        }
+
+        .accordion-section.open .accordion-icon {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .accordion-section.open .accordion-content {
+            max-height: 1200px;
+            overflow: visible;
+        }
+
+        .accordion-inner {
+            padding: 14px;
+            background: white;
+        }
+
+        /* Input Groups */
+        .input-group {
+            margin-bottom: 14px;
+        }
+
+        .input-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .input-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .input-label .required {
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        .input-label .unit {
+            font-weight: 400;
+            color: #6b7280;
+            font-size: 12px;
+        }
+
+        /* Info tooltip - fixed positioning */
+        .info-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 15px;
+            height: 15px;
+            background: #e5e7eb;
+            color: #6b7280;
+            border-radius: 50%;
+            font-size: 9px;
+            font-weight: 700;
+            cursor: help;
+            flex-shrink: 0;
+            font-style: normal;
+        }
+
+        .info-icon:hover {
+            background: #d1d5db;
+        }
+
+        .tooltip-wrapper {
+            position: relative;
+            display: inline-flex;
+        }
+
+        .tooltip {
+            display: none;
+            position: fixed;
+            background: #1f2937;
+            color: white;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 400;
+            width: 240px;
+            text-align: left;
+            z-index: 9999;
+            line-height: 1.5;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            pointer-events: none;
+        }
+
+        .info-icon:hover + .tooltip,
+        .tooltip-wrapper:hover .tooltip {
+            display: block;
+        }
+
+        /* Number inputs with validation */
+        .number-input {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .number-input input {
+            width: 90px;
+            padding: 7px 10px;
+            padding-right: 26px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .number-input input:focus {
+            outline: none;
+            border-color: #1a365d;
+            box-shadow: 0 0 0 3px rgba(26, 54, 93, 0.1);
+        }
+
+        .number-input input.valid {
+            border-color: #059669;
+        }
+
+        .validation-icon {
+            position: absolute;
+            right: 7px;
+            font-size: 12px;
+            color: #059669;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+
+        .validation-icon.show {
+            opacity: 1;
+        }
+
+        .number-input .range {
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
+        /* Unit toggle */
+        .unit-toggle {
+            display: inline-flex;
+            gap: 0;
+            border: 1px solid #d1d5db;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-left: 6px;
+        }
+
+        .unit-option {
+            padding: 2px 6px;
+            font-size: 10px;
+            cursor: pointer;
+            background: #fff;
+            border: none;
+            border-right: 1px solid #d1d5db;
+            transition: all 0.15s;
+            color: #6b7280;
+        }
+
+        .unit-option:last-child {
+            border-right: none;
+        }
+
+        .unit-option.selected {
+            background: #1a365d;
+            color: white;
+        }
+
+        /* Toggle switches */
+        .toggle-group {
+            display: flex;
+            gap: 0;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .toggle-option {
+            flex: 1;
+            padding: 7px 10px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 13px;
+            background: #fff;
+            border: none;
+            border-right: 1px solid #d1d5db;
+            transition: all 0.15s ease;
+            color: #374151;
+        }
+
+        .toggle-option:last-child {
+            border-right: none;
+        }
+
+        .toggle-option:hover {
+            background: #f9fafb;
+        }
+
+        .toggle-option.selected {
+            background: #1a365d;
+            color: white;
+        }
+
+        .toggle-option input {
+            display: none;
+        }
+
+        /* Checkbox list */
+        .checkbox-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .checkbox-item:hover {
+            background: #f3f4f6;
+        }
+
+        .checkbox-item.checked {
+            background: #ecfdf5;
+            border-color: #059669;
+        }
+
+        .checkbox-item label {
+            font-size: 13px;
+            cursor: pointer;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #374151;
+        }
+
+        .checkbox-item input {
+            display: none;
+        }
+
+        .checkbox-toggle {
+            width: 36px;
+            height: 20px;
+            background: #d1d5db;
+            border-radius: 10px;
+            position: relative;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .checkbox-toggle::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .checkbox-item.checked .checkbox-toggle {
+            background: #059669;
+        }
+
+        .checkbox-item.checked .checkbox-toggle::after {
+            left: 18px;
+        }
+
+        /* Results */
+        .result-display {
+            text-align: center;
+            padding: 24px 16px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+
+        .result-label {
+            font-size: 11px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .result-value {
+            font-size: 42px;
+            font-weight: 300;
+            color: #374151;
+            letter-spacing: -1px;
+        }
+
+        .result-value.low { color: #059669; }
+        .result-value.medium { color: #d97706; }
+        .result-value.high { color: #dc2626; }
+
+        .result-category {
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 6px;
+            padding: 4px 14px;
+            border-radius: 4px;
+            display: inline-block;
+            letter-spacing: 0.2px;
+        }
+
+        .result-category.low {
+            background: #ecfdf5;
+            color: #059669;
+        }
+
+        .result-category.medium {
+            background: #fffbeb;
+            color: #d97706;
+        }
+
+        .result-category.high {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        /* Critical Actions Alert */
+        .critical-alert {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-left: 3px solid #dc2626;
+            border-radius: 4px;
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            display: none;
+        }
+
+        .critical-alert.show {
+            display: block;
+        }
+
+        .critical-alert-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #dc2626;
+            font-weight: 600;
+            font-size: 12px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .critical-alert ul {
+            margin: 0;
+            padding-left: 16px;
+            font-size: 12px;
+            color: #991b1b;
+        }
+
+        .critical-alert li {
+            margin-bottom: 3px;
+        }
+
+        /* Next Steps */
+        .next-steps {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            padding: 14px;
+        }
+
+        .next-steps-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #1a365d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .next-steps ul {
+            margin: 0;
+            padding-left: 16px;
+            font-size: 12px;
+            color: #4b5563;
+        }
+
+        .next-steps li {
+            margin-bottom: 4px;
+        }
+
+        /* Creator Info */
+        .creator-info {
+            margin-top: 16px;
+            padding: 14px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+        }
+
+        .creator-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #1a365d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .creator-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .creator-centers {
+            font-size: 11px;
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        /* Calculate Button */
+        .calculate-btn {
+            width: 100%;
+            padding: 12px 20px;
+            background: #1a365d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: background 0.15s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .calculate-btn:hover {
+            background: #2c5282;
+        }
+
+        .calculate-btn:active {
+            background: #1a365d;
+        }
+
+        /* Side info panels */
+        .side-info-panel {
+            margin-top: 14px;
+            padding: 12px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+        }
+
+        .side-info-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #1a365d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .side-info-content {
+            font-size: 12px;
+            line-height: 1.6;
+            color: #4b5563;
+        }
+
+        .side-info-content ul {
+            margin: 4px 0;
+            padding-left: 16px;
+        }
+
+        .side-info-content li {
+            margin-bottom: 3px;
+        }
+
+        .side-info-content strong {
+            color: #374151;
+        }
+
+        .side-info-content em {
+            color: #6b7280;
+            font-size: 11px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .calc-body {
+                grid-template-columns: 1fr;
+            }
+
+            .inputs-section {
+                border-right: none;
+                border-bottom: 1px solid #e5e7eb;
+            }
+
+            .result-value {
+                font-size: 36px;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+            font-size: 13px;
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>MMAE Treatment Failure Risk Calculator <span style="background:#ff6b35; color:white; font-size:14px; padding:3px 8px; border-radius:4px; vertical-align:middle; margin-left:8px;">BETA</span></h1>
+            <p>Predicts 90-day risk of treatment failure following middle meningeal artery embolization for subdural hematoma</p>
+        </div>
+
+        <div class="warning-banner">
+            <strong>Disclaimer:</strong> This tool is intended for research and educational purposes only. It is not a substitute for clinical judgment and should not be used as the sole basis for treatment decisions.
+        </div>
+
+        <div class="calc-body">
+            <div class="inputs-section">
+                <div class="section-label">Patient Parameters</div>
+
+                <!-- Demographics Accordion -->
+                <div class="accordion-section open" data-section="demographics">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <span class="accordion-title">Demographics</span>
+                        <span class="accordion-icon">&#9660;</span>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="accordion-inner">
+                            <div class="input-group">
+                                <div class="input-label">
+                                    Age <span class="required">*</span> <span class="unit">(years)</span>
+                                    <span class="tooltip-wrapper">
+                                        <span class="info-icon">i</span>
+                                        <span class="tooltip" id="tooltip-age">Patient age at time of procedure</span>
+                                    </span>
+                                </div>
+                                <div class="number-input">
+                                    <div class="input-wrapper">
+                                        <input type="number" id="age" min="18" max="110" placeholder="72" oninput="validateAndCalculate()" onfocus="positionTooltip('age')">
+                                        <span class="validation-icon" id="age-check">&#10003;</span>
+                                    </div>
+                                    <span class="range">18–110</span>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <div class="input-label">
+                                    Sex
+                                    <span class="tooltip-wrapper">
+                                        <span class="info-icon">i</span>
+                                        <span class="tooltip" id="tooltip-sex">Biological sex</span>
+                                    </span>
+                                </div>
+                                <div class="toggle-group">
+                                    <label class="toggle-option selected" onclick="selectToggle(this)">
+                                        <input type="radio" name="sex" value="1" checked> Male
+                                    </label>
+                                    <label class="toggle-option" onclick="selectToggle(this)">
+                                        <input type="radio" name="sex" value="0"> Female
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <div class="input-label">
+                                    Pre-morbid mRS
+                                    <span class="tooltip-wrapper">
+                                        <span class="info-icon">i</span>
+                                        <span class="tooltip">Modified Rankin Scale before SDH. 0=No symptoms, 5=Severe disability</span>
+                                    </span>
+                                </div>
+                                <div class="toggle-group">
+                                    <label class="toggle-option selected" onclick="selectToggle(this)">
+                                        <input type="radio" name="premorbid_mrs" value="0" checked> 0
+                                    </label>
+                                    <label class="toggle-option" onclick="selectToggle(this)">
+                                        <input type="radio" name="premorbid_mrs" value="1"> 1
+                                    </label>
+                                    <label class="toggle-option" onclick="selectToggle(this)">
+                                        <input type="radio" name="premorbid_mrs" value="2"> 2
+                                    </label>
+                                    <label class="toggle-option" onclick="selectToggle(this)">
+                                        <input type="radio" name="premorbid_mrs" value="3"> 3
+                                    </label>
+                                    <label class="toggle-option" onclick="selectToggle(this)">
+                                        <input type="radio" name="premorbid_mrs" value="4"> 4
+                                    </label>
+                                    <label class="toggle-option" onclick="selectToggle(this)">
+                                        <input type="radio" name="premorbid_mrs" value="5"> 5
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Laboratory Values Accordion -->
+                <div class="accordion-section open" data-section="labs">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <span class="accordion-title">Laboratory Values</span>
+                        <span class="accordion-icon">&#9660;</span>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="accordion-inner">
+                            <div class="input-group">
+                                <div class="input-label">
+                                    Platelet Count <span class="required">*</span> <span class="unit">(×10⁹/L)</span>
+                                    <span class="tooltip-wrapper">
+                                        <span class="info-icon">i</span>
+                                        <span class="tooltip" id="tooltip-platelet">Platelet count at admission. Thrombocytopenia may indicate increased bleeding risk.</span>
+                                    </span>
+                                </div>
+                                <div class="number-input">
+                                    <div class="input-wrapper">
+                                        <input type="number" id="platelet" min="10" max="600" placeholder="215" oninput="validateAndCalculate()">
+                                        <span class="validation-icon" id="platelet-check">&#10003;</span>
+                                    </div>
+                                    <span class="range">Normal: 150–400</span>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <div class="input-label">
+                                    Hemoglobin <span class="required">*</span>
+                                    <span class="unit" id="hgb-unit">(g/dL)</span>
+                                    <div class="unit-toggle">
+                                        <span class="unit-option selected" onclick="setHgbUnit('gdL')">g/dL</span>
+                                        <span class="unit-option" onclick="setHgbUnit('gL')">g/L</span>
+                                    </div>
+                                    <span class="tooltip-wrapper">
+                                        <span class="info-icon">i</span>
+                                        <span class="tooltip" id="tooltip-hgb">Hemoglobin at admission</span>
+                                    </span>
+                                </div>
+                                <div class="number-input">
+                                    <div class="input-wrapper">
+                                        <input type="number" id="hemoglobin" min="4" max="20" step="0.1" placeholder="12.5" oninput="validateAndCalculate()">
+                                        <span class="validation-icon" id="hemoglobin-check">&#10003;</span>
+                                    </div>
+                                    <span class="range" id="hgb-range">Normal: 12–17</span>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <div class="input-label">
+                                    GCS
+                                    <span class="tooltip-wrapper">
+                                        <span class="info-icon">i</span>
+                                        <span class="tooltip" id="tooltip-gcs">Glasgow Coma Scale score at presentation</span>
+                                    </span>
+                                </div>
+                                <div class="number-input">
+                                    <div class="input-wrapper">
+                                        <input type="number" id="gcs" min="3" max="15" value="15" oninput="validateAndCalculate()">
+                                        <span class="validation-icon show" id="gcs-check">&#10003;</span>
+                                    </div>
+                                    <span class="range">3–15</span>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <div class="input-label">
+                                    WBC <span class="unit">(×10⁹/L)</span>
+                                    <span class="tooltip-wrapper">
+                                        <span class="info-icon">i</span>
+                                        <span class="tooltip">White blood cell count at admission</span>
+                                    </span>
+                                </div>
+                                <div class="number-input">
+                                    <div class="input-wrapper">
+                                        <input type="number" id="wbc" min="0" max="50" step="0.1" value="7.9" oninput="validateAndCalculate()">
+                                        <span class="validation-icon show" id="wbc-check">&#10003;</span>
+                                    </div>
+                                    <span class="range">Normal: 4–11</span>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <div class="input-label">
+                                    aPTT <span class="unit">(seconds)</span>
+                                    <span class="tooltip-wrapper">
+                                        <span class="info-icon">i</span>
+                                        <span class="tooltip">Activated partial thromboplastin time at admission</span>
+                                    </span>
+                                </div>
+                                <div class="number-input">
+                                    <div class="input-wrapper">
+                                        <input type="number" id="aptt" min="15" max="120" step="0.1" value="29.5" oninput="validateAndCalculate()">
+                                        <span class="validation-icon show" id="aptt-check">&#10003;</span>
+                                    </div>
+                                    <span class="range">Normal: 25–35</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Imaging Accordion -->
+                <div class="accordion-section open" data-section="imaging">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <span class="accordion-title">Imaging Findings</span>
+                        <span class="accordion-icon">&#9660;</span>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="accordion-inner">
+                            <div class="input-group">
+                                <div class="input-label">
+                                    SDH Thickness <span class="required">*</span> <span class="unit">(mm)</span>
+                                    <span class="tooltip-wrapper">
+                                        <span class="info-icon">i</span>
+                                        <span class="tooltip" id="tooltip-thickness">Maximum thickness of subdural hematoma</span>
+                                    </span>
+                                </div>
+                                <div class="number-input">
+                                    <div class="input-wrapper">
+                                        <input type="number" id="sdh_thickness" min="0" max="60" step="0.1" placeholder="15" oninput="validateAndCalculate()">
+                                        <span class="validation-icon" id="sdh_thickness-check">&#10003;</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <div class="input-label">
+                                    Midline Shift <span class="required">*</span> <span class="unit">(mm)</span>
+                                    <span class="tooltip-wrapper">
+                                        <span class="info-icon">i</span>
+                                        <span class="tooltip" id="tooltip-shift">Degree of midline shift. Enter 0 if none.</span>
+                                    </span>
+                                </div>
+                                <div class="number-input">
+                                    <div class="input-wrapper">
+                                        <input type="number" id="midline_shift" min="0" max="30" step="0.1" placeholder="0" oninput="validateAndCalculate()">
+                                        <span class="validation-icon" id="midline_shift-check">&#10003;</span>
+                                    </div>
+                                    <span class="range">0 if none</span>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <div class="input-label">
+                                    SDH Type
+                                    <span class="tooltip-wrapper">
+                                        <span class="info-icon">i</span>
+                                        <span class="tooltip" id="tooltip-type">Imaging classification of subdural hematoma</span>
+                                    </span>
+                                </div>
+                                <div class="toggle-group">
+                                    <label class="toggle-option selected" onclick="selectToggle(this)">
+                                        <input type="radio" name="sdh_type" value="chronic" checked> Chronic
+                                    </label>
+                                    <label class="toggle-option" onclick="selectToggle(this)">
+                                        <input type="radio" name="sdh_type" value="mixed"> Mixed
+                                    </label>
+                                    <label class="toggle-option" onclick="selectToggle(this)">
+                                        <input type="radio" name="sdh_type" value="acute"> Acute
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <div class="input-label">
+                                    Laterality
+                                    <span class="tooltip-wrapper">
+                                        <span class="info-icon">i</span>
+                                        <span class="tooltip" id="tooltip-lat">Unilateral vs bilateral involvement</span>
+                                    </span>
+                                </div>
+                                <div class="toggle-group">
+                                    <label class="toggle-option selected" onclick="selectToggle(this)">
+                                        <input type="radio" name="laterality" value="1" checked> Unilateral
+                                    </label>
+                                    <label class="toggle-option" onclick="selectToggle(this)">
+                                        <input type="radio" name="laterality" value="3"> Bilateral
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Clinical Features Accordion -->
+                <div class="accordion-section open" data-section="clinical">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <span class="accordion-title">Clinical Features</span>
+                        <span class="accordion-icon">&#9660;</span>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="accordion-inner">
+                            <div class="checkbox-list">
+                                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                    <label>Altered mental status</label>
+                                    <input type="checkbox" id="altered_mental">
+                                    <div class="checkbox-toggle"></div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                    <label>Confusion</label>
+                                    <input type="checkbox" id="confusion">
+                                    <div class="checkbox-toggle"></div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                    <label>Headache</label>
+                                    <input type="checkbox" id="headache">
+                                    <div class="checkbox-toggle"></div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                    <label>Seizure</label>
+                                    <input type="checkbox" id="seizure">
+                                    <div class="checkbox-toggle"></div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                    <label>Focal weakness</label>
+                                    <input type="checkbox" id="focal_weakness">
+                                    <div class="checkbox-toggle"></div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                    <label>Facial droop</label>
+                                    <input type="checkbox" id="facial_droop">
+                                    <div class="checkbox-toggle"></div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                    <label>Cranial nerve palsy</label>
+                                    <input type="checkbox" id="cranial_nerve_palsy">
+                                    <div class="checkbox-toggle"></div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                    <label>Significant mass effect</label>
+                                    <input type="checkbox" id="mass_effect">
+                                    <div class="checkbox-toggle"></div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                    <label>Membranes or septations</label>
+                                    <input type="checkbox" id="membranes">
+                                    <div class="checkbox-toggle"></div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                    <label>Brain atrophy</label>
+                                    <input type="checkbox" id="brain_atrophy">
+                                    <div class="checkbox-toggle"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Medical History Accordion -->
+                <div class="accordion-section open" data-section="history">
+                    <div class="accordion-header" onclick="toggleAccordion(this)">
+                        <span class="accordion-title">Medical History</span>
+                        <span class="accordion-icon">&#9660;</span>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="accordion-inner">
+                            <div class="checkbox-list">
+                                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                    <label>Anticoagulation therapy</label>
+                                    <input type="checkbox" id="anticoagulant">
+                                    <div class="checkbox-toggle"></div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                    <label>Antiplatelet therapy</label>
+                                    <input type="checkbox" id="antiplatelet">
+                                    <div class="checkbox-toggle"></div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                    <label>Cardiac disease</label>
+                                    <input type="checkbox" id="cardiac">
+                                    <div class="checkbox-toggle"></div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                    <label>Liver disease</label>
+                                    <input type="checkbox" id="liver_disease">
+                                    <div class="checkbox-toggle"></div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                    <label>History of GI bleeding</label>
+                                    <input type="checkbox" id="gi_bleeding">
+                                    <div class="checkbox-toggle"></div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                    <label>History of VTE</label>
+                                    <input type="checkbox" id="vte">
+                                    <div class="checkbox-toggle"></div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                    <label>Prior intracranial disease (ICAD)</label>
+                                    <input type="checkbox" id="icad">
+                                    <div class="checkbox-toggle"></div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                    <label>History of cranial trauma</label>
+                                    <input type="checkbox" id="cranial_trauma">
+                                    <div class="checkbox-toggle"></div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                    <label>VP shunt</label>
+                                    <input type="checkbox" id="vp_shunt">
+                                    <div class="checkbox-toggle"></div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                    <label>Sickle cell disease</label>
+                                    <input type="checkbox" id="sickle_cell">
+                                    <div class="checkbox-toggle"></div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                    <label>HIV/HCV</label>
+                                    <input type="checkbox" id="hiv_hcv">
+                                    <div class="checkbox-toggle"></div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                    <label>Alcohol use</label>
+                                    <input type="checkbox" id="alcohol">
+                                    <div class="checkbox-toggle"></div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                                    <label>Smoking</label>
+                                    <input type="checkbox" id="smoking">
+                                    <div class="checkbox-toggle"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="calculate-btn" onclick="calculateRisk()">Calculate Score</button>
+
+            </div>
+
+            <div class="results-section">
+                <div class="section-label">Result</div>
+
+                <div class="loading" id="loading">Loading model...</div>
+
+                <div id="resultsContent" class="hidden">
+                    <!-- Critical Actions Alert -->
+                    <div class="critical-alert" id="criticalAlert">
+                        <div class="critical-alert-header">
+                            High Risk - Consider
+                        </div>
+                        <ul>
+                            <li>Multidisciplinary discussion before proceeding</li>
+                            <li>Alternative or adjunctive treatment options</li>
+                            <li>Intensive post-procedural monitoring</li>
+                            <li>Detailed informed consent discussion</li>
+                        </ul>
+                    </div>
+
+                    <div id="inputWarning" style="display:none; background:#fff3cd; border:1px solid #ffc107; border-radius:8px; padding:12px; margin-bottom:16px; color:#856404; font-size:13px; line-height:1.5;"></div>
+
+                    <div class="result-display">
+                        <div class="result-label">90-Day Treatment Failure Risk</div>
+                        <div class="result-value" id="resultValue">—</div>
+                        <div class="result-category" id="resultCategory">Enter values</div>
+                    </div>
+
+                    <!-- Next Steps -->
+                    <div class="next-steps" id="nextSteps">
+                        <div class="next-steps-title">Management Considerations</div>
+                        <ul id="nextStepsList">
+                            <li>Complete required fields to calculate risk</li>
+                        </ul>
+                    </div>
+
+                    <!-- About This Calculator -->
+                    <div class="side-info-panel">
+                        <div class="side-info-title">About This Calculator</div>
+                        <div class="side-info-content">
+                            <p>Estimates <strong>90-day treatment failure</strong> risk after MMAE for subdural hematoma.</p>
+                            <p style="margin-top: 8px;"><strong>Treatment failure:</strong> surgical intervention, repeat MMAE, or SDH-related death within 90 days.</p>
+                        </div>
+                    </div>
+
+                    <!-- When to Use -->
+                    <div class="side-info-panel">
+                        <div class="side-info-title">When to Use</div>
+                        <div class="side-info-content">
+                            <ul>
+                                <li>Pre-procedural risk stratification</li>
+                                <li>Shared decision-making</li>
+                                <li>Post-procedural surveillance planning</li>
+                            </ul>
+                            <p style="margin-top: 8px;"><em>Not a substitute for clinical judgment.</em></p>
+                        </div>
+                    </div>
+
+                    <!-- Creator Info -->
+                    <div class="creator-info">
+                        <div class="creator-title">Created By</div>
+                        <div class="creator-name">MESH International Collaboration</div>
+                        <div class="creator-centers">
+                            Albert Einstein College of Medicine,
+                            Bordeaux University Hospital,
+                            Cornell University,
+                            Geisinger Medical Center,
+                            San Martino Policlinic Hospital,
+                            Heidelberg University Hospital,
+                            Henri Mondor Hospital,
+                            University of Iowa,
+                            San Raffaele Hospital,
+                            Lehigh Valley Health Network,
+                            Maine Medical Center,
+                            Mayo Clinic Florida,
+                            Mayo Clinic Rochester,
+                            NYU Langone Health,
+                            Oregon Health & Science University,
+                            University of Pennsylvania,
+                            St. Michael's Hospital,
+                            Sutter Health,
+                            Thomas Jefferson University Hospital,
+                            University of Alabama at Birmingham,
+                            University of South Florida,
+                            University of Washington,
+                            Westchester Medical Center,
+                            WellSpan Health,
+                            University Hospital Centre Zagreb
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.16.3/dist/ort.min.js"></script>
+
+    <script>
+        let modelParams = null;
+        let onnxSession = null;
+        let hgbUnit = 'gdL';
+
+        // Position tooltips to avoid cutoff
+        document.querySelectorAll('.info-icon').forEach(icon => {
+            icon.addEventListener('mouseenter', function(e) {
+                const tooltip = this.nextElementSibling;
+                if (!tooltip || !tooltip.classList.contains('tooltip')) return;
+
+                const rect = this.getBoundingClientRect();
+                const tooltipWidth = 240;
+                const tooltipHeight = 80;
+
+                // Position to the right of the icon by default
+                let left = rect.right + 8;
+                let top = rect.top - 10;
+
+                // If would go off right edge, position to the left
+                if (left + tooltipWidth > window.innerWidth - 20) {
+                    left = rect.left - tooltipWidth - 8;
+                }
+
+                // If would go off top, position below
+                if (top < 10) {
+                    top = rect.bottom + 8;
+                }
+
+                // If would go off bottom
+                if (top + tooltipHeight > window.innerHeight - 10) {
+                    top = window.innerHeight - tooltipHeight - 10;
+                }
+
+                tooltip.style.left = left + 'px';
+                tooltip.style.top = top + 'px';
+            });
+        });
+
+        function toggleAccordion(header) {
+            const section = header.parentElement;
+            section.classList.toggle('open');
+        }
+
+        function selectToggle(el) {
+            const group = el.parentElement;
+            group.querySelectorAll('.toggle-option').forEach(opt => opt.classList.remove('selected'));
+            el.classList.add('selected');
+            el.querySelector('input').checked = true;
+            calculateRisk();
+        }
+
+        function toggleCheckbox(el) {
+            const input = el.querySelector('input');
+            input.checked = !input.checked;
+            el.classList.toggle('checked', input.checked);
+            calculateRisk();
+        }
+
+        function setHgbUnit(unit) {
+            hgbUnit = unit;
+            const options = document.querySelectorAll('.unit-toggle .unit-option');
+            options.forEach(opt => opt.classList.remove('selected'));
+            if (unit === 'gdL') {
+                options[0].classList.add('selected');
+                document.getElementById('hgb-unit').textContent = '(g/dL)';
+                document.getElementById('hgb-range').textContent = 'Normal: 12–17';
+                document.getElementById('hemoglobin').min = 4;
+                document.getElementById('hemoglobin').max = 20;
+                document.getElementById('hemoglobin').placeholder = '12.5';
+            } else {
+                options[1].classList.add('selected');
+                document.getElementById('hgb-unit').textContent = '(g/L)';
+                document.getElementById('hgb-range').textContent = 'Normal: 120–170';
+                document.getElementById('hemoglobin').min = 40;
+                document.getElementById('hemoglobin').max = 200;
+                document.getElementById('hemoglobin').placeholder = '125';
+            }
+            calculateRisk();
+        }
+
+        function validateInput(inputId, min, max) {
+            const input = document.getElementById(inputId);
+            const check = document.getElementById(inputId + '-check');
+            const value = parseFloat(input.value);
+
+            if (!isNaN(value) && value >= min && value <= max) {
+                check.classList.add('show');
+                input.classList.add('valid');
+                return true;
+            } else {
+                check.classList.remove('show');
+                input.classList.remove('valid');
+                return false;
+            }
+        }
+
+        function validateAndCalculate() {
+            validateInput('age', 18, 110);
+            validateInput('platelet', 10, 600);
+
+            const hgbMin = hgbUnit === 'gdL' ? 4 : 40;
+            const hgbMax = hgbUnit === 'gdL' ? 20 : 200;
+            validateInput('hemoglobin', hgbMin, hgbMax);
+
+            validateInput('gcs', 3, 15);
+            validateInput('wbc', 0, 50);
+            validateInput('aptt', 15, 120);
+            validateInput('sdh_thickness', 0, 60);
+            validateInput('midline_shift', 0, 30);
+
+            calculateRisk();
+        }
+
+        async function loadModel() {
+            try {
+                const paramsResponse = await fetch('model_params.json');
+                modelParams = await paramsResponse.json();
+                onnxSession = await ort.InferenceSession.create('model.onnx?v=' + Date.now());
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('resultsContent').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error loading model:', error);
+                document.getElementById('loading').textContent = 'Error loading model. Please refresh.';
+            }
+        }
+
+        async function calculateRisk() {
+            if (!onnxSession || !modelParams) return;
+
+            // Demographics
+            const age = parseFloat(document.getElementById('age').value);
+            const sex = parseFloat(document.querySelector('input[name="sex"]:checked').value);
+            const premorbidMrs = parseFloat(document.querySelector('input[name="premorbid_mrs"]:checked').value);
+
+            // Labs
+            const platelet = parseFloat(document.getElementById('platelet').value);
+            let hemoglobin = parseFloat(document.getElementById('hemoglobin').value);
+            const gcs = parseFloat(document.getElementById('gcs').value) || 15;
+            const wbc = parseFloat(document.getElementById('wbc').value) || 7.9;
+            const aptt = parseFloat(document.getElementById('aptt').value) || 29.5;
+
+            // Imaging
+            const sdhThickness = parseFloat(document.getElementById('sdh_thickness').value);
+            const midlineShift = parseFloat(document.getElementById('midline_shift').value);
+            const sdhType = document.querySelector('input[name="sdh_type"]:checked').value;
+            const laterality = parseFloat(document.querySelector('input[name="laterality"]:checked').value);
+
+            // Clinical features
+            const alteredMental = document.getElementById('altered_mental').checked ? 1 : 0;
+            const confusion = document.getElementById('confusion').checked ? 1 : 0;
+            const headache = document.getElementById('headache').checked ? 1 : 0;
+            const seizure = document.getElementById('seizure').checked ? 1 : 0;
+            const focalWeakness = document.getElementById('focal_weakness').checked ? 1 : 0;
+            const facialDroop = document.getElementById('facial_droop').checked ? 1 : 0;
+            const cranialNervePalsy = document.getElementById('cranial_nerve_palsy').checked ? 1 : 0;
+            const massEffect = document.getElementById('mass_effect').checked ? 1 : 0;
+            const membranes = document.getElementById('membranes').checked ? 1 : 0;
+            const brainAtrophy = document.getElementById('brain_atrophy').checked ? 1 : 0;
+
+            // Medical history
+            const anticoagulant = document.getElementById('anticoagulant').checked ? 1 : 0;
+            const antiplatelet = document.getElementById('antiplatelet').checked ? 1 : 0;
+            const cardiac = document.getElementById('cardiac').checked ? 1 : 0;
+            const liverDisease = document.getElementById('liver_disease').checked ? 1 : 0;
+            const giBleed = document.getElementById('gi_bleeding').checked ? 1 : 0;
+            const vte = document.getElementById('vte').checked ? 1 : 0;
+            const icad = document.getElementById('icad').checked ? 1 : 0;
+            const cranialTrauma = document.getElementById('cranial_trauma').checked ? 1 : 0;
+            const vpShunt = document.getElementById('vp_shunt').checked ? 1 : 0;
+            const sickleCell = document.getElementById('sickle_cell').checked ? 1 : 0;
+            const hivHcv = document.getElementById('hiv_hcv').checked ? 1 : 0;
+            const alcohol = document.getElementById('alcohol').checked ? 1 : 0;
+            const smoking = document.getElementById('smoking').checked ? 1 : 0;
+
+            // Validate clinical ranges and show warnings
+            const warnings = [];
+            if (age < 18 || age > 110) warnings.push('Age outside typical range (18-110)');
+            if (sdhThickness > 50) warnings.push('SDH thickness >50mm is outside training data range');
+            if (midlineShift > 20) warnings.push('Midline shift >20mm is outside training data range');
+            if (platelet < 10 || platelet > 600) warnings.push('Platelet count outside typical range');
+            if (hemoglobin < 4 || hemoglobin > 20) warnings.push('Hemoglobin outside typical range');
+            if (gcs < 3 || gcs > 15) warnings.push('GCS must be 3-15');
+
+            // Show/hide warning
+            const warningEl = document.getElementById('inputWarning');
+            if (warningEl) {
+                if (warnings.length > 0) {
+                    warningEl.innerHTML = '⚠️ ' + warnings.join('<br>⚠️ ');
+                    warningEl.style.display = 'block';
+                } else {
+                    warningEl.style.display = 'none';
+                }
+            }
+
+            if (isNaN(age) || isNaN(platelet) || isNaN(hemoglobin) || isNaN(sdhThickness) || isNaN(midlineShift)) {
+                document.getElementById('resultValue').textContent = '—';
+                document.getElementById('resultValue').className = 'result-value';
+                document.getElementById('resultCategory').textContent = 'Enter values';
+                document.getElementById('resultCategory').className = 'result-category';
+                document.getElementById('criticalAlert').classList.remove('show');
+                document.getElementById('nextStepsList').innerHTML = '<li>Complete required fields to calculate risk</li>';
+                return;
+            }
+
+            if (hgbUnit === 'gL') hemoglobin = hemoglobin / 10;
+
+            // Derived features
+            const isBilateral = laterality === 3 ? 1 : 0;
+            const isChronic = sdhType === 'chronic' ? 1 : 0;
+            const isAcute = sdhType === 'acute' ? 1 : 0;
+            const isMixed = sdhType === 'mixed' ? 1 : 0;
+            const sdhCharacteristics = isChronic ? 1 : (isAcute ? 5 : 4);
+            const complexSdh = (membranes || isBilateral) ? 1 : 0;
+
+            const severeThrombo = platelet < 50 ? 1 : 0;
+            const moderateThrombo = (platelet >= 50 && platelet < 100) ? 1 : 0;
+            const thrombocytopenia = platelet < 150 ? 1 : 0;
+            const severeAnemia = hemoglobin < 8 ? 1 : 0;
+            const moderateAnemia = (hemoglobin >= 8 && hemoglobin < 10) ? 1 : 0;
+            const prolongedAptt = aptt > 40 ? 1 : 0;
+            const coagulopathyScore = (anticoagulant + severeThrombo + moderateThrombo > 0) ? 1 : 0;
+            const antithrombotics = (anticoagulant || antiplatelet) ? 1 : 0;
+            const charlson = cardiac + liverDisease;
+            const charlsonAgeAdj = charlson + Math.floor((age - 40) / 10);
+            const anticoagRiskScore = anticoagulant + antiplatelet;
+            const bleedingRiskScore = (platelet < 100 ? 1 : 0) + (liverDisease ? 1 : 0);
+
+            // Engineered features
+            const agePltInteraction = (age * platelet) / 10000;
+            const sdhShiftProduct = (sdhThickness * midlineShift) / 100;
+            const sdhShiftRatio = midlineShift / (sdhThickness + 1);
+            const pltHgbRatio = platelet / (hemoglobin + 0.1);
+            const elderly = age > 80 ? 1 : 0;
+            const ageSquared = Math.pow(age / 100, 2);
+            const ageCharlsonProduct = (age * charlson) / 100;
+            const compositeBleedingRisk = (platelet < 100 ? 2 : 0) + (platelet < 150 ? 1 : 0) + anticoagulant + (bleedingRiskScore > 2 ? 1 : 0);
+            const neuroSeverity = (gcs < 15 ? 1 : 0) + (gcs < 13 ? 2 : 0) + (massEffect * 2) + alteredMental;
+
+            // Feature array in exact model order (64 features)
+            const features = [
+                age,                    // 0: age
+                sex,                    // 1: sex
+                1,                      // 2: ethnicity (default)
+                gcs,                    // 3: admission_gcs
+                premorbidMrs,           // 4: admission_premorbid_mrs
+                alteredMental,          // 5: altered_mental_status
+                confusion,              // 6: confusion
+                headache,               // 7: headache
+                seizure,                // 8: seizure
+                focalWeakness,          // 9: focal_weakness
+                facialDroop,            // 10: facial_droop
+                cranialNervePalsy,      // 11: cranial_nerve_palsy
+                platelet,               // 12: plt_count
+                hemoglobin,             // 13: hemoglobin_at_admission
+                wbc,                    // 14: wbc_at_admission
+                aptt,                   // 15: aptt_at_admission
+                sdhThickness,           // 16: sdh_thickness_receiving_mmae
+                midlineShift,           // 17: midline_shift_if_no_put_0
+                laterality,             // 18: sdh_laterality
+                brainAtrophy,           // 19: brain_atrophy
+                membranes,              // 20: membranes_or_septations
+                sdhCharacteristics,     // 21: sdh_imaging_characteristics
+                1,                      // 22: cause_of_sdh (default)
+                cardiac,                // 23: cardiac_disease
+                liverDisease,           // 24: liver_disease
+                giBleed,                // 25: history_of_gastrointestinal_bleeding
+                vte,                    // 26: history_of_vte
+                icad,                   // 27: prior_diagnosis_of_icad
+                cranialTrauma,          // 28: hx_of_cranial_trauma
+                vpShunt,                // 29: hx_ventriculoperitoneal_shunt
+                sickleCell,             // 30: sickle_cell_disease
+                hivHcv,                 // 31: hivhcv
+                anticoagulant,          // 32: anticoagulants
+                antiplatelet,           // 33: antiplatelets
+                antithrombotics,        // 34: antithrombotics
+                anticoagulant,          // 35: anticoagulation_drug
+                alcohol,                // 36: alcohol
+                smoking,                // 37: smoking
+                charlson,               // 38: charlson_score
+                charlsonAgeAdj,         // 39: charlson_age_adjusted
+                anticoagRiskScore,      // 40: anticoag_risk_score
+                bleedingRiskScore,      // 41: bleeding_risk_score
+                isChronic,              // 42: is_chronic_sdh
+                isAcute,                // 43: is_acute_sdh
+                isMixed,                // 44: is_mixed_sdh
+                isBilateral,            // 45: is_bilateral
+                complexSdh,             // 46: complex_sdh
+                massEffect,             // 47: significant_mass_effect
+                severeThrombo,          // 48: severe_thrombocytopenia
+                moderateThrombo,        // 49: moderate_thrombocytopenia
+                severeAnemia,           // 50: severe_anemia
+                moderateAnemia,         // 51: moderate_anemia
+                prolongedAptt,          // 52: prolonged_aptt
+                coagulopathyScore,      // 53: coagulopathy_score
+                thrombocytopenia,       // 54: thrombocytopenia
+                agePltInteraction,      // 55: age_plt_interaction
+                sdhShiftProduct,        // 56: sdh_shift_product
+                sdhShiftRatio,          // 57: sdh_shift_ratio
+                pltHgbRatio,            // 58: plt_hgb_ratio
+                elderly,                // 59: elderly
+                ageSquared,             // 60: age_squared
+                ageCharlsonProduct,     // 61: age_charlson_product
+                compositeBleedingRisk,  // 62: composite_bleeding_risk
+                neuroSeverity           // 63: neurological_severity
+            ];
+
+            try {
+                // ONNX model includes preprocessing (imputer + scaler) - pass RAW values
+                const inputTensor = new ort.Tensor('float32', new Float32Array(features), [1, 64]);
+                const results = await onnxSession.run({ float_input: inputTensor });
+
+                // Output 'probabilities' is a tensor of shape [1, 2] - [class 0 prob, class 1 prob]
+                const probs = results.probabilities.data;
+                let probability = Math.max(0.001, Math.min(0.999, probs[1]));
+                displayResults(probability);
+            } catch (error) {
+                console.error('Inference error:', error);
+            }
+        }
+
+        function displayResults(probability) {
+            const pct = (probability * 100).toFixed(1);
+            let category, categoryClass, nextSteps;
+
+            if (probability < 0.05) {
+                category = 'Low Risk';
+                categoryClass = 'low';
+                document.getElementById('criticalAlert').classList.remove('show');
+                nextSteps = [
+                    'Proceed with planned intervention',
+                    'Standard post-procedural monitoring protocol',
+                    'Follow-up imaging per institutional guidelines',
+                    'Routine clinical follow-up'
+                ];
+            } else if (probability < 0.15) {
+                category = 'Intermediate Risk';
+                categoryClass = 'medium';
+                document.getElementById('criticalAlert').classList.remove('show');
+                nextSteps = [
+                    'Consider multidisciplinary case discussion',
+                    'Enhanced post-procedural surveillance',
+                    'Earlier follow-up imaging may be warranted',
+                    'Ensure contingency planning for treatment failure',
+                    'Document shared decision-making discussion'
+                ];
+            } else {
+                category = 'High Risk';
+                categoryClass = 'high';
+                document.getElementById('criticalAlert').classList.add('show');
+                nextSteps = [
+                    'Multidisciplinary team consultation recommended',
+                    'Consider surgical evacuation as primary treatment',
+                    'If MMAE pursued, ensure intensive monitoring capability',
+                    'Plan for potential rescue intervention',
+                    'Comprehensive informed consent documentation',
+                    'Close clinical and radiographic surveillance'
+                ];
+            }
+
+            document.getElementById('resultValue').textContent = pct + '%';
+            document.getElementById('resultValue').className = 'result-value ' + categoryClass;
+            document.getElementById('resultCategory').textContent = category;
+            document.getElementById('resultCategory').className = 'result-category ' + categoryClass;
+            document.getElementById('nextStepsList').innerHTML = nextSteps.map(step => `<li>${step}</li>`).join('');
+        }
+
+        window.addEventListener('load', loadModel);
+    </script>
+</body>
+</html>
