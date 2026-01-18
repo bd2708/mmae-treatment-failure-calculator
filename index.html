@@ -906,7 +906,7 @@
                                         <input type="radio" name="sdh_type" value="mixed"> Mixed
                                     </label>
                                     <label class="toggle-option" onclick="selectToggle(this)">
-                                        <input type="radio" name="sdh_type" value="acute"> Acute
+                                        <input type="radio" name="sdh_type" value="subacute"> Subacute
                                     </label>
                                 </div>
                             </div>
@@ -1386,9 +1386,9 @@
             // Derived features
             const isBilateral = laterality === 3 ? 1 : 0;
             const isChronic = sdhType === 'chronic' ? 1 : 0;
-            const isAcute = sdhType === 'acute' ? 1 : 0;
+            const isSubacute = sdhType === 'subacute' ? 1 : 0;
             const isMixed = sdhType === 'mixed' ? 1 : 0;
-            const sdhCharacteristics = isChronic ? 1 : (isAcute ? 5 : 4);
+            const sdhCharacteristics = isChronic ? 1 : (isSubacute ? 5 : 4);
             const complexSdh = (membranes || isBilateral) ? 1 : 0;
 
             const severeThrombo = platelet < 50 ? 1 : 0;
@@ -1460,7 +1460,7 @@
                 anticoagRiskScore,      // 40: anticoag_risk_score
                 bleedingRiskScore,      // 41: bleeding_risk_score
                 isChronic,              // 42: is_chronic_sdh
-                isAcute,                // 43: is_acute_sdh
+                isSubacute,             // 43: is_subacute_sdh
                 isMixed,                // 44: is_mixed_sdh
                 isBilateral,            // 45: is_bilateral
                 complexSdh,             // 46: complex_sdh
