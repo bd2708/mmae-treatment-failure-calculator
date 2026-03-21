@@ -1,6 +1,6 @@
 # MMAE Treatment Failure Risk Calculator
 
-Machine learning model predicting treatment failure after middle meningeal artery embolization (MMAE) for subdural hematoma (SDH). This repository accompanies the manuscript submitted to *Neurosurgery Practice*.
+Machine learning model predicting treatment failure after middle meningeal artery embolization (MMAE) for subdural hematoma (SDH). This repository accompanies the manuscript submitted to *Neurosurgery*.
 
 **Live Calculator:** [https://bd2708.github.io/mmae-treatment-failure-calculator/](https://bd2708.github.io/mmae-treatment-failure-calculator/)
 
