@@ -1,10 +1,10 @@
 # Data Format Description
 
-Patient-level data from the MESH Registry cannot be shared due to privacy restrictions. This document describes the required input format for researchers who wish to apply this model to their own institutional data.
+Patient-level data from the international registry cannot be shared due to privacy restrictions. This document describes the required input format for researchers who wish to apply this model to their own institutional data.
 
 ## Synthetic Sample Data
 
-`synthetic_sample.csv` contains 30 rows of randomly generated data for verifying that the codebase runs correctly. **These are not real patients.** Values were drawn from uniform/categorical distributions within clinically plausible ranges and do not reflect the actual MESH Registry cohort. The synthetic data can be used as follows:
+`synthetic_sample.csv` contains 30 rows of randomly generated data for verifying that the codebase runs correctly. **These are not real patients.** Values were drawn from uniform/categorical distributions within clinically plausible ranges and do not reflect the actual international registry cohort. The synthetic data can be used as follows:
 
 ```bash
 # Copy synthetic data to the expected location

@@ -31,4 +31,4 @@ python src/export_model_to_onnx.py
 
 ### Note
 
-Patient-level data from the MESH Registry is not included. To reproduce the model, you will need a dataset with the 51 base features described in `data/README.md` and a binary `treatment_failure` outcome variable.
+Patient-level data from the international registry is not included. To reproduce the model, you will need a dataset with the 51 base features described in `data/README.md` and a binary `treatment_failure` outcome variable.

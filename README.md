@@ -86,7 +86,7 @@ python src/export_model_to_onnx.py
 
 ## Data Availability
 
-Patient-level data from the MESH (Middle meningeal Embolization for Subdural Hematoma) International Registry cannot be shared due to privacy restrictions and multi-institutional data use agreements. The `data/` directory contains a description of the required input format for researchers who wish to apply this model to their own institutional data.
+Patient-level data from the international registry cannot be shared due to privacy restrictions and multi-institutional data use agreements. The `data/` directory contains a description of the required input format for researchers who wish to apply this model to their own institutional data.
 
 ## Requirements
 
