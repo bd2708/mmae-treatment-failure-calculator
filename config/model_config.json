@@ -1,0 +1,18 @@
+{
+  "model_type": "GradientBoostingClassifier",
+  "n_estimators": 500,
+  "learning_rate": 0.02,
+  "max_depth": 6,
+  "min_samples_split": 10,
+  "min_samples_leaf": 5,
+  "subsample": 0.8,
+  "max_features": "sqrt",
+  "random_state": 42,
+  "test_size": 0.30,
+  "n_features": 64,
+  "target_variable": "treatment_failure",
+  "calibration_method": "isotonic",
+  "calibration_cv": 3,
+  "auc": 0.856,
+  "onnx_opset": 12
+}
