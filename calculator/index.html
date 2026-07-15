@@ -114,38 +114,6 @@
             letter-spacing: 0;
         }
 
-        .doc-ident {
-            display: flex;
-            align-items: center;
-            gap: .5rem;
-            flex-shrink: 0;
-        }
-
-        .sku {
-            font-family: var(--mono);
-            text-transform: uppercase;
-            letter-spacing: .1rem;
-            font-size: .8rem;
-            border: 1px dotted var(--ink);
-            padding: .1rem .5rem;
-            white-space: nowrap;
-        }
-
-        .sku-solid {
-            border: .1rem solid var(--ink);
-            background: var(--ink);
-            color: var(--paper);
-        }
-
-        .red-dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background: var(--error);
-            vertical-align: middle;
-            animation: blink .8s steps(2, start) infinite;
-        }
-        @keyframes blink { to { visibility: hidden; } }
 
         /* meta strip */
         .doc-meta {
@@ -755,37 +723,6 @@
             font-size: .68rem;
         }
 
-        /* ---- TOP NAV BAR ---- */
-        .doc-nav {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0;
-            border-bottom: .1rem solid var(--ink);
-            background: var(--paper);
-        }
-        .doc-nav a {
-            font-family: var(--mono);
-            font-size: .78rem;
-            text-transform: uppercase;
-            letter-spacing: .1rem;
-            text-decoration: none;
-            color: var(--ink);
-            padding: .3rem .9rem;
-            height: 1.75rem;
-            display: inline-flex;
-            align-items: center;
-            border-right: .1rem solid var(--ink);
-            user-select: none;
-        }
-        .doc-nav a:hover, .doc-nav a:focus { background: var(--ink); color: var(--paper); outline: none; }
-        .doc-nav .nav-spacer { flex: 1; border-right: none; }
-        .doc-nav .nav-status {
-            color: var(--meta);
-            border-right: none;
-            pointer-events: none;
-        }
-        .doc-nav .nav-status:hover { background: var(--paper); color: var(--meta); }
-
         /* ---- PARAMETER TABLES ---- */
         .param-table {
             width: 100%;
@@ -874,9 +811,6 @@
         <div class="doc-head">
             <div class="doc-title-row">
                 <h1>MMAE Treatment Failure &mdash; Risk Calculator</h1>
-                <div class="doc-ident">
-                    <span class="sku sku-solid">BETA <span class="red-dot"></span></span>
-                </div>
             </div>
             <table class="doc-meta">
                 <tr>
@@ -890,15 +824,6 @@
             </div>
         </div>
 
-        <nav class="doc-nav">
-            <a href="#parameters">Calculator</a>
-            <a href="#result">Result</a>
-            <a href="#model">Model</a>
-            <a href="#centers">Centers</a>
-            <a href="#about">About</a>
-            <span class="nav-spacer"></span>
-            <a class="nav-status">MESH Registry · 24 Centers</a>
-        </nav>
 
         <div class="disclaimer">
             <span class="cap">Disclaimer</span> &mdash; This tool is intended for research and educational purposes only. It is not a substitute for clinical judgment and should not be used as the sole basis for treatment decisions.
@@ -1095,7 +1020,7 @@
                 <span>MESH International Collaboration</span>
                 <span>Machine-learning model &middot; AUC 0.856 &middot; 90-day horizon</span>
                 <span>Research Use Only</span>
-                <span class="nav-status" style="border:none;padding:0">Preview &middot; v0.9</span>
+                <span>Preview &middot; v0.9</span>
             </div>
             <div class="foot-citation">
                 DeMessie B, Essibayi MA, Salim HA, &hellip; Dmytriw AA, Altschul DJ; on behalf of the MESH Collaborators. Machine Learning Prediction of Treatment Failure After Middle Meningeal Artery Embolization for Subdural Hematoma. <em>Neurosurgery</em> (in press).
