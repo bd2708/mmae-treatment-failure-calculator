@@ -993,7 +993,7 @@
                     <tr class="checkbox-item" onclick="toggleCheckbox(this)"><td class="k">History of cranial trauma</td><td class="v"><input type="checkbox" id="cranial_trauma"><div class="checkbox-toggle"></div></td></tr>
                 </table>
 
-                <button class="calculate-btn" onclick="calculateFromButton()">Calculate Score</button>
+                <button class="calculate-btn" onclick="calculateFromButton()">Calculate Risk</button>
 
             </div>
 
@@ -1055,7 +1055,7 @@
                         <div class="side-info-content">
                             <p>Estimates <strong>90-day treatment failure</strong> risk after MMAE for subdural hematoma.</p>
                             <p><strong>Treatment failure:</strong> surgical intervention, repeat MMAE, or SDH-related death within 90 days.</p>
-                            <p>Gradient-boosting model, AUC 0.856. Displayed probabilities are Platt-calibrated to the published model; inference runs entirely in your browser.</p>
+                            <p>Gradient-boosting model, AUC 0.856. Displayed probabilities are calibrated to the published model; inference runs entirely in your browser.</p>
                             <p>Intended for overall risk stratification. The effect of a single input should not be interpreted in isolation.</p>
                         </div>
                     </div>
@@ -1076,7 +1076,7 @@
                         <div class="side-info-title" id="model">Model</div>
                         <table class="spec">
                             <tr><td class="k">Algorithm</td><td class="v">Gradient boosting</td></tr>
-                            <tr><td class="k">Calibration</td><td class="v">Platt (sigmoid)</td></tr>
+                            <tr><td class="k">Calibration</td><td class="v">Isotonic</td></tr>
                             <tr><td class="k">Discrimination</td><td class="v">AUC 0.856</td></tr>
                             <tr><td class="k">Outcome</td><td class="v">Treatment failure</td></tr>
                             <tr><td class="k">Horizon</td><td class="v">90 days</td></tr>
